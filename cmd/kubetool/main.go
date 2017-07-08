@@ -35,7 +35,7 @@ func main() {
 
 	cmd, ok := kubetool.Commands[input.Command]
 	if !ok {
-		fatal(fmt.Errorf("invalid command: %s", cmd))
+		fatal(fmt.Errorf("invalid command: %s", input.Command))
 	}
 
 	fatal(cmd(input))
