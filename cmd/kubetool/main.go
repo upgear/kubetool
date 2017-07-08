@@ -31,7 +31,7 @@ func main() {
 		Name:    args[1],
 	}
 
-	fatal(kubetool.CheckRepo(input))
+	fatal(kubetool.CheckRepo(&input))
 
 	cmd, ok := kubetool.Commands[input.Command]
 	if !ok {

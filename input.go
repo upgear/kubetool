@@ -4,6 +4,7 @@ type Input struct {
 	Args
 	Flags
 	Env
+	Repo
 }
 
 type Args struct {
@@ -20,4 +21,8 @@ type Env struct {
 	KubernetesPath string
 	DockerfilePath string
 	DockerContext  string
+}
+
+type Repo struct {
+	CommitHash string
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func CheckRepo(in Input) error {
+func CheckRepo(in *Input) error {
 	dolog := in.Flags.Verbose
 
 	// Make sure there all unstaged changes are committed
@@ -43,12 +43,14 @@ func CheckRepo(in Input) error {
 	}
 
 	// Make sure local master is in sync with remote
-	return repoIsSynced(dolog)
+	return repoIsSynced(in)
 }
 
 var refrgx = regexp.MustCompile(`(\S+)\s+(\S+)`)
 
-func repoIsSynced(dolog bool) error {
+func repoIsSynced(in *Input) error {
+	dolog := in.Flags.Verbose
+
 	local, err := cmd(dolog, "git", "show-ref", "--heads")
 	if err != nil {
 		return err
@@ -84,6 +86,8 @@ func repoIsSynced(dolog bool) error {
 	if localM[master] != remoteM[master] {
 		return fmt.Errorf("remote master ref (%s) not in sync with local (%s)", localM[master], remoteM[master])
 	}
+
+	in.Repo.CommitHash = localM[master]
 
 	return nil
 }
