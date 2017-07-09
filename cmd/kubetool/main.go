@@ -5,7 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/upgear/go-kit/log"
 	"github.com/upgear/kubetool"
 )
 
@@ -37,8 +39,8 @@ func main() {
 		fatal(errors.New(usage("expected exactly 2 arguments")))
 	}
 	input.Args = kubetool.Args{
-		Command: args[0],
-		Name:    args[1],
+		Commands: strings.Split(args[0], ","),
+		Name:     args[1],
 	}
 
 	fatal(input.Validate())
@@ -46,12 +48,23 @@ func main() {
 		fatal(kubetool.CheckRepo(&input))
 	}
 
-	cmd, ok := kubetool.Commands[input.Command]
-	if !ok {
-		fatal(fmt.Errorf("invalid command: %s", input.Command))
+	// Map commands
+	cmds := make([]kubetool.Command, len(input.Commands))
+	for i, c := range input.Commands {
+		var ok bool
+		cmds[i], ok = kubetool.CommandMap[c]
+		if !ok {
+			fatal(fmt.Errorf("invalid command: %s", c))
+		}
 	}
 
-	fatal(cmd(input))
+	// Run commands
+	for i, cmd := range cmds {
+		if input.Flags.Verbose {
+			log.Info("starting kubetool sub-command", log.M{"subcmd": input.Commands[i]})
+		}
+		fatal(cmd(input))
+	}
 }
 
 func envElse(env, def string) string {
@@ -99,5 +112,9 @@ Environment Variables:
     KT_CONTAINER_IMAGE  Template for container image (docker tag)
     KT_DOCKER_CONTEXT   Docker build context (directory)
     KT_CLOUD            Cloud provider (only supports 'gcloud')
+
+Note:
+
+    Commands can be comma seperated, ie: blueprint build,push,deploy example
 `
 }

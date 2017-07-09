@@ -18,8 +18,8 @@ func (in Input) Validate() error {
 }
 
 type Args struct {
-	Command string
-	Name    string
+	Commands []string
+	Name     string
 }
 
 type Flags struct {
