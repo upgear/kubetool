@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/upgear/go-kit/log"
 )
 
 func Deploy(in Input) error {
@@ -36,8 +37,6 @@ func Deploy(in Input) error {
 		return errors.Wrap(err, "unable to update image version")
 	}
 
-	fmt.Println(string(newConf))
-
 	name := "kubectl"
 	params := []string{"apply", "-f", "-"}
 	cmd := exec.Command(name, params...)
@@ -57,6 +56,8 @@ func Deploy(in Input) error {
 
 	if in.Flags.Verbose {
 		cmd.Stdout = os.Stdout
+		log.Info("modified tag", log.M{"tag": tag})
+		fmt.Println(string(newConf))
 		logCmd(name, params...)
 	}
 
