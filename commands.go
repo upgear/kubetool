@@ -4,5 +4,6 @@ type Command func(Input) error
 
 var Commands = map[string]Command{
 	"build":  Build,
+	"push":   Push,
 	"deploy": Deploy,
 }

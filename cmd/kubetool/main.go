@@ -12,10 +12,11 @@ import (
 func main() {
 	input := kubetool.Input{
 		Env: kubetool.Env{
+			Cloud:          envElse("KT_CLOUD", "gcloud"),
+			TagTemplate:    envElse("KT_DOCKER_TAG", "{{.Args.Name}}"),
 			KubernetesPath: envElse("KT_KUBERNETES_PATH", "."),
 			DockerfilePath: envElse("KT_DOCKERFILE_PATH", "."),
 			DockerContext:  envElse("KT_DOCKER_CONTEXT", "."),
-			TagTemplate:    envElse("KT_DOCKER_TAG", "{{.Args.Name}}"),
 		},
 	}
 
@@ -31,6 +32,7 @@ func main() {
 		Name:    args[1],
 	}
 
+	fatal(input.Validate())
 	fatal(kubetool.CheckRepo(&input))
 
 	cmd, ok := kubetool.Commands[input.Command]
@@ -72,5 +74,6 @@ Environment Variables:
     KT_KUBERNETES_PATH   Direcotry to look for kubernetes configs
     KT_DOCKER_TAG        Template to create docker tag
     KT_DOCKER_CONTEXT    Docker build context (directory)
+    KT_CLOUD             Cloud provider (only supports 'gcloud')
 `
 }
