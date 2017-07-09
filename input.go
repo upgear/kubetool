@@ -19,6 +19,7 @@ func (in Input) Validate() error {
 
 type Args struct {
 	Commands []string
+	Names    []string
 	Name     string
 }
 

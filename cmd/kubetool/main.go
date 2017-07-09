@@ -35,12 +35,12 @@ func main() {
 	flag.Parse()
 
 	args := flag.Args()
-	if len(args) != 2 {
-		fatal(errors.New(usage("expected exactly 2 arguments")))
+	if len(args) < 2 {
+		fatal(errors.New(usage("expected at least 2 arguments")))
 	}
 	input.Args = kubetool.Args{
 		Commands: strings.Split(args[0], ","),
-		Name:     args[1],
+		Names:    args[1:],
 	}
 
 	fatal(input.Validate())
@@ -58,12 +58,17 @@ func main() {
 		}
 	}
 
-	// Run commands
-	for i, cmd := range cmds {
-		if input.Flags.Verbose {
-			log.Info("starting kubetool sub-command", log.M{"subcmd": input.Commands[i]})
+	for _, input.Args.Name = range input.Args.Names {
+		// Run commands
+		for i, cmd := range cmds {
+			if input.Flags.Verbose {
+				log.Info("starting kubetool sub-command", log.M{
+					"name":   input.Args.Name,
+					"subcmd": input.Commands[i],
+				})
+			}
+			fatal(cmd(input))
 		}
-		fatal(cmd(input))
 	}
 }
 
@@ -87,7 +92,7 @@ func usage(msg string) string {
 		msg = msg + "\n\n"
 	}
 	return msg +
-		`Usage: kubetool [Options...] <command> <name>
+		`Usage: kubetool [Options...] <command> <name>...
 
 Commands:
     build   Runs docker build
@@ -115,6 +120,10 @@ Environment Variables:
 
 Note:
 
-    Commands can be comma seperated, ie: blueprint build,push,deploy example
+    Commands can be comma seperated: blueprint build,push,deploy example
+
+    Multiple names can be supplied:  blueprint build one two
+
+    Multiple commands & names:       blueprint build,push,deploy one two
 `
 }
