@@ -18,13 +18,18 @@ func main() {
 			DockerfilePath: envElse("KT_DOCKERFILE_PATH", "."),
 			DockerContext:  envElse("KT_DOCKER_CONTEXT", "."),
 		},
+		Repo: kubetool.Repo{
+			// Default to 'latest'
+			CommitHash: "latest",
+		},
 	}
 
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, usage(""))
 	}
 	flag.BoolVar(&input.Flags.Verbose, "v", false, "Log a bunch of stuff")
-	flag.BoolVar(&input.Flags.IgnoreRepo, "repo-ok", false, "Ingore the state of the repo")
+	flag.BoolVar(&input.Flags.Latest, "latest", false, "Use 'latest' as container image version rather than git commit")
+	flag.BoolVar(&input.Flags.Save, "save", false, "Save deployed kubernetes config")
 	flag.Parse()
 
 	args := flag.Args()
@@ -37,7 +42,9 @@ func main() {
 	}
 
 	fatal(input.Validate())
-	fatal(kubetool.CheckRepo(&input))
+	if !input.Flags.Latest {
+		fatal(kubetool.CheckRepo(&input))
+	}
 
 	cmd, ok := kubetool.Commands[input.Command]
 	if !ok {
@@ -71,14 +78,20 @@ func usage(msg string) string {
 
 Commands:
     build   Runs docker build
-	push    Runs docker push
+
+    push    Runs docker push
+
     deploy  Runs docker build & kubectl apply
+
+        Options:
+
+            --save  Save the updated kubernetes config (with new image versions)
 
 Options:
     -h --help  Print usage
     -v         Verbose output
 
-    --repo-ok  Ignore the state of the repo
+    --latest   Use 'latest' as container image version rather than git commit
 
 Environment Variables:
     KT_DOCKERFILE_PATH  Directory to look for Dockerfiles

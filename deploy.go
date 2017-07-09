@@ -65,8 +65,10 @@ func Deploy(in Input) error {
 		return errors.Wrapf(err, "unable to execute command: %s %s: %s", name, strings.Join(params, " "), stderr.String())
 	}
 
-	if err := ioutil.WriteFile(file, newConf, 0644); err != nil {
-		return errors.Wrapf(err, "unable to write updated kubernetes config file: %s", file)
+	if in.Flags.Save {
+		if err := ioutil.WriteFile(file, newConf, 0644); err != nil {
+			return errors.Wrapf(err, "unable to write updated kubernetes config file: %s", file)
+		}
 	}
 
 	return nil

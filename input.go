@@ -23,8 +23,9 @@ type Args struct {
 }
 
 type Flags struct {
-	Verbose    bool
-	IgnoreRepo bool
+	Verbose bool
+	Latest  bool
+	Save    bool
 }
 
 type Env struct {
