@@ -28,7 +28,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, usage(""))
 	}
 	flag.BoolVar(&input.Flags.Verbose, "v", false, "Log a bunch of stuff")
-	flag.BoolVar(&input.Flags.Latest, "latest", false, "Use 'latest' as container image version rather than git commit")
+	flag.BoolVar(&input.Flags.Latest, "latest", false, "Use 'latest' for .Repo.CommitHash in template")
 	flag.BoolVar(&input.Flags.Save, "save", false, "Save deployed kubernetes config")
 	flag.Parse()
 
@@ -91,7 +91,7 @@ Options:
     -h --help  Print usage
     -v         Verbose output
 
-    --latest   Use 'latest' as container image version rather than git commit
+    --latest   Use 'latest' for .Repo.CommitHash in template
 
 Environment Variables:
     KT_DOCKERFILE_PATH  Directory to look for Dockerfiles
