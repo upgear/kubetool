@@ -23,12 +23,13 @@ type Args struct {
 }
 
 type Flags struct {
-	Verbose bool
+	Verbose    bool
+	IgnoreRepo bool
 }
 
 type Env struct {
 	Cloud          string
-	TagTemplate    string
+	ContainerImage string
 	KubernetesPath string
 	DockerfilePath string
 	DockerContext  string

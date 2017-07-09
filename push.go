@@ -5,7 +5,7 @@ import "github.com/pkg/errors"
 func Push(in Input) error {
 	dolog := in.Flags.Verbose
 
-	tag, err := templateString(in.Env.TagTemplate, in)
+	tag, err := templateString(in.Env.ContainerImage, in)
 	if err != nil {
 		return errors.Wrap(err, "unable to template tag")
 	}

@@ -20,7 +20,7 @@ func CheckRepo(in *Input) error {
 	if err != nil {
 		return err
 	}
-	if lsFiles != "" {
+	if !in.Flags.IgnoreRepo && lsFiles != "" {
 		return errors.New("uncommitted unstaged git changes")
 	}
 
@@ -29,7 +29,7 @@ func CheckRepo(in *Input) error {
 	if err != nil {
 		return err
 	}
-	if stagedDiff != "" {
+	if !in.Flags.IgnoreRepo && stagedDiff != "" {
 		return errors.New("uncommitted staged git changes")
 	}
 
@@ -38,7 +38,7 @@ func CheckRepo(in *Input) error {
 	if err != nil {
 		return err
 	}
-	if ref != "refs/heads/master" {
+	if !in.Flags.IgnoreRepo && ref != "refs/heads/master" {
 		return errors.New("not on master branch")
 	}
 
@@ -77,14 +77,16 @@ func repoIsSynced(in *Input) error {
 	remoteM := refmap(strings.Split(remote, "\n"))
 
 	const master = "refs/heads/master"
-	if _, ok := localM[master]; !ok {
-		return errors.New("local master branch not found")
-	}
-	if _, ok := remoteM[master]; !ok {
-		return errors.New("remote master branch not found")
-	}
-	if localM[master] != remoteM[master] {
-		return fmt.Errorf("remote master ref (%s) not in sync with local (%s)", localM[master], remoteM[master])
+	if !in.Flags.IgnoreRepo {
+		if _, ok := localM[master]; !ok {
+			return errors.New("local master branch not found")
+		}
+		if _, ok := remoteM[master]; !ok {
+			return errors.New("remote master branch not found")
+		}
+		if localM[master] != remoteM[master] {
+			return fmt.Errorf("remote master ref (%s) not in sync with local (%s)", localM[master], remoteM[master])
+		}
 	}
 
 	in.Repo.CommitHash = localM[master]
