@@ -14,14 +14,14 @@ import (
 )
 
 func Deploy(in Input) error {
-	file := in.Env.KubernetesFile
+	file := in.ComputedEnv.KubernetesFile
 
 	confBtys, err := ioutil.ReadFile(file)
 	if err != nil {
 		return errors.Wrapf(err, "unable to read kubernetes file: %s", file)
 	}
 
-	splitTag := strings.Split(in.Env.ContainerImage, ":")
+	splitTag := strings.Split(in.ComputedEnv.ContainerImage, ":")
 	if len(splitTag) != 2 {
 		return errors.New("expected tag to have version")
 	}
@@ -50,7 +50,7 @@ func Deploy(in Input) error {
 
 	if in.Flags.Verbose {
 		cmd.Stdout = os.Stdout
-		log.Info("modified tag", log.M{"tag": in.Env.ContainerImage})
+		log.Info("modified tag", log.M{"tag": in.ComputedEnv.ContainerImage})
 		fmt.Println(string(newConf))
 		logCmd(name, params...)
 	}

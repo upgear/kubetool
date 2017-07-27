@@ -11,7 +11,7 @@ import (
 
 func Build(in Input) error {
 	name := "docker"
-	params := []string{"build", "-t", in.Env.ContainerImage, "-f", in.Env.DockerFile, in.Env.DockerContext}
+	params := []string{"build", "-t", in.ComputedEnv.ContainerImage, "-f", in.ComputedEnv.DockerFile, in.ComputedEnv.DockerContext}
 	cmd := exec.Command(name, params...)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
