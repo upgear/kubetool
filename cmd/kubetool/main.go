@@ -16,8 +16,8 @@ func main() {
 		Env: kubetool.Env{
 			Cloud:          envElse("KT_CLOUD", "gcloud"),
 			ContainerImage: envElse("KT_CONTAINER_IMAGE", "{{.Args.Name}}"),
-			KubernetesPath: envElse("KT_KUBERNETES_PATH", "."),
-			DockerfilePath: envElse("KT_DOCKERFILE_PATH", "."),
+			KubernetesFile: envElse("KT_KUBERNETES_FILE", "."),
+			DockerFile:     envElse("KT_DOCKER_FILE", "."),
 			DockerContext:  envElse("KT_DOCKER_CONTEXT", "."),
 		},
 		Repo: kubetool.Repo{
@@ -43,7 +43,6 @@ func main() {
 		Names:    args[1:],
 	}
 
-	fatal(input.Validate())
 	if !input.Flags.Latest {
 		fatal(kubetool.CheckRepo(&input))
 	}
@@ -67,6 +66,7 @@ func main() {
 					"subcmd": input.Commands[i],
 				})
 			}
+			fatal(input.Process())
 			fatal(cmd(input))
 		}
 	}
@@ -112,8 +112,8 @@ Options:
     --latest   Use 'latest' for .Repo.CommitHash in template
 
 Environment Variables:
-    KT_DOCKERFILE_PATH  Directory to look for Dockerfiles
-    KT_KUBERNETES_PATH  Direcotry to look for kubernetes configs
+    KT_DOCKER_FILE      Dockerfile
+    KT_KUBERNETES_FILE  Kubernetes config
     KT_CONTAINER_IMAGE  Template for container image (docker tag)
     KT_DOCKER_CONTEXT   Docker build context (directory)
     KT_CLOUD            Cloud provider (only supports 'gcloud')

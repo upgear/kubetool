@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -15,19 +14,14 @@ import (
 )
 
 func Deploy(in Input) error {
-	tag, err := templateString(in.Env.ContainerImage, in)
-	if err != nil {
-		return errors.Wrap(err, "unable to template tag")
-	}
-
-	file := filepath.Join(in.Env.KubernetesPath, fmt.Sprintf("%s.yaml", in.Args.Name))
+	file := in.Env.KubernetesFile
 
 	confBtys, err := ioutil.ReadFile(file)
 	if err != nil {
 		return errors.Wrapf(err, "unable to read kubernetes file: %s", file)
 	}
 
-	splitTag := strings.Split(tag, ":")
+	splitTag := strings.Split(in.Env.ContainerImage, ":")
 	if len(splitTag) != 2 {
 		return errors.New("expected tag to have version")
 	}
@@ -56,7 +50,7 @@ func Deploy(in Input) error {
 
 	if in.Flags.Verbose {
 		cmd.Stdout = os.Stdout
-		log.Info("modified tag", log.M{"tag": tag})
+		log.Info("modified tag", log.M{"tag": in.Env.ContainerImage})
 		fmt.Println(string(newConf))
 		logCmd(name, params...)
 	}

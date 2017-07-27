@@ -2,25 +2,16 @@ package kubetool
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
 )
 
 func Build(in Input) error {
-	tag, err := templateString(in.Env.ContainerImage, in)
-	if err != nil {
-		return errors.Wrap(err, "unable to template tag")
-	}
-
-	file := filepath.Join(in.Env.DockerfilePath, fmt.Sprintf("%s.Dockerfile", in.Args.Name))
-
 	name := "docker"
-	params := []string{"build", "-t", tag, "-f", file, in.Env.DockerContext}
+	params := []string{"build", "-t", in.Env.ContainerImage, "-f", in.Env.DockerFile, in.Env.DockerContext}
 	cmd := exec.Command(name, params...)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
