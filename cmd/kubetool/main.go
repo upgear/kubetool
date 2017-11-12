@@ -100,6 +100,8 @@ Commands:
 
     push    Runs docker push
 
+	delete  Delete previous kubernetes deployments (and test deployments)
+
     deploy  Runs kubectl apply
 
         Options:

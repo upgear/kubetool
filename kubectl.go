@@ -21,6 +21,38 @@ func Test(in Input) error {
 	return apply(in, in.ComputedEnv.KubernetesTestFile)
 }
 
+func Delete(in Input) error {
+	if err := del(in.Flags.Verbose, in.ComputedEnv.KubernetesFile); err != nil {
+		return err
+	}
+	if err := del(in.Flags.Verbose, in.ComputedEnv.KubernetesTestFile); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func del(dolog bool, file string) error {
+	name := "kubectl"
+	params := []string{"delete", "-f", file}
+	cmd := exec.Command(name, params...)
+
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	if dolog {
+		logCmd(name, params...)
+	}
+
+	if err := cmd.Run(); err != nil {
+		if !strings.Contains(stderr.String(), "not found") {
+			return errors.Wrapf(err, "unable to execute command: %s %s: %s", name, strings.Join(params, " "), stderr.String())
+		}
+	}
+
+	return nil
+}
+
 func apply(in Input, file string) error {
 	confBtys, err := ioutil.ReadFile(file)
 	if err != nil {
