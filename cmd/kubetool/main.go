@@ -100,13 +100,13 @@ Commands:
 
     push    Runs docker push
 
-    deploy  Runs docker build & kubectl apply
+    deploy  Runs kubectl apply
 
         Options:
 
             --save  Save the updated kubernetes config (with new image versions)
 
-    test    Runs docker build & kubectl apply with test config
+    test    Runs kubectl apply with test config
 
         Options:
 
