@@ -14,11 +14,12 @@ import (
 func main() {
 	input := kubetool.Input{
 		Env: kubetool.Env{
-			Cloud:          envElse("KT_CLOUD", "gcloud"),
-			ContainerImage: envElse("KT_CONTAINER_IMAGE", "{{.Args.Name}}"),
-			KubernetesFile: envElse("KT_KUBERNETES_FILE", "."),
-			DockerFile:     envElse("KT_DOCKER_FILE", "."),
-			DockerContext:  envElse("KT_DOCKER_CONTEXT", "."),
+			Cloud:              envElse("KT_CLOUD", "gcloud"),
+			ContainerImage:     envElse("KT_CONTAINER_IMAGE", "{{.Args.Name}}"),
+			KubernetesFile:     envElse("KT_KUBERNETES_FILE", "."),
+			KubernetesTestFile: envElse("KT_KUBERNETES_TEST_FILE", "."),
+			DockerFile:         envElse("KT_DOCKER_FILE", "."),
+			DockerContext:      envElse("KT_DOCKER_CONTEXT", "."),
 		},
 		Repo: kubetool.Repo{
 			// Default to 'latest'
@@ -104,6 +105,12 @@ Commands:
         Options:
 
             --save  Save the updated kubernetes config (with new image versions)
+
+    test    Runs docker build & kubectl apply with test config
+
+        Options:
+
+            --save  (see deploy command)
 
 Options:
     -h --help  Print usage

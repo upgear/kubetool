@@ -14,8 +14,14 @@ import (
 )
 
 func Deploy(in Input) error {
-	file := in.ComputedEnv.KubernetesFile
+	return apply(in, in.ComputedEnv.KubernetesFile)
+}
 
+func Test(in Input) error {
+	return apply(in, in.ComputedEnv.KubernetesTestFile)
+}
+
+func apply(in Input, file string) error {
 	confBtys, err := ioutil.ReadFile(file)
 	if err != nil {
 		return errors.Wrapf(err, "unable to read kubernetes file: %s", file)

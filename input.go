@@ -28,6 +28,10 @@ func (in *Input) Process() error {
 	if err != nil {
 		return err
 	}
+	in.ComputedEnv.KubernetesTestFile, err = templateString(in.Env.KubernetesTestFile, *in)
+	if err != nil {
+		return err
+	}
 	in.ComputedEnv.DockerFile, err = templateString(in.Env.DockerFile, *in)
 	if err != nil {
 		return err
@@ -53,11 +57,12 @@ type Flags struct {
 }
 
 type Env struct {
-	Cloud          string
-	ContainerImage string
-	KubernetesFile string
-	DockerFile     string
-	DockerContext  string
+	Cloud              string
+	ContainerImage     string
+	KubernetesFile     string
+	KubernetesTestFile string
+	DockerFile         string
+	DockerContext      string
 }
 
 func (env Env) Process() error {
