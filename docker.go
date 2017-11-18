@@ -10,9 +10,9 @@ import (
 	"github.com/upgear/go-kit/log"
 )
 
-func Build(in Input) error {
+func Build(in CommandInput) error {
 	name := "docker"
-	params := []string{"build", "-t", in.ComputedEnv.ContainerImage, "-f", in.ComputedEnv.DockerFile, in.ComputedEnv.DockerContext}
+	params := []string{"build", "-t", in.Env.ContainerImage, "-f", in.Env.DockerFile, in.Env.DockerContext}
 	cmd := exec.Command(name, params...)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -29,7 +29,7 @@ func Build(in Input) error {
 	return nil
 }
 
-func Push(in Input) error {
+func Push(in CommandInput) error {
 	dolog := in.Flags.Verbose
 
 	if in.Flags.Local {
@@ -39,7 +39,7 @@ func Push(in Input) error {
 		return nil
 	}
 
-	if _, err := cmd(dolog, in.ComputedEnv.Cloud, "docker", "--", "push", in.ComputedEnv.ContainerImage); err != nil {
+	if _, err := cmd(dolog, in.Cloud, "docker", "--", "push", in.ContainerImage); err != nil {
 		return errors.Wrap(err, "unable to push docker image")
 	}
 

@@ -1,49 +1,12 @@
 package kubetool
 
-import "github.com/pkg/errors"
-
-type Input struct {
-	Args
-	Flags
-	Env
-	ComputedEnv Env
-	Repo
-}
-
-func (in *Input) Process() error {
-	if err := in.Env.Process(); err != nil {
-		return errors.Wrap(err, "invalid environment")
-	}
-
-	var err error
-	in.ComputedEnv.Cloud, err = templateString(in.Env.Cloud, *in)
-	if err != nil {
-		return err
-	}
-	in.ComputedEnv.ContainerImage, err = templateString(in.Env.ContainerImage, *in)
-	if err != nil {
-		return err
-	}
-	in.ComputedEnv.KubernetesFile, err = templateString(in.Env.KubernetesFile, *in)
-	if err != nil {
-		return err
-	}
-	in.ComputedEnv.DockerFile, err = templateString(in.Env.DockerFile, *in)
-	if err != nil {
-		return err
-	}
-	in.ComputedEnv.DockerContext, err = templateString(in.Env.DockerContext, *in)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+import (
+	"github.com/pkg/errors"
+)
 
 type Args struct {
-	Commands []string
-	Names    []string
-	Name     string
+	Commands   []string
+	Components []string
 }
 
 type Flags struct {
@@ -60,14 +23,20 @@ type Env struct {
 	DockerContext  string
 }
 
-func (env Env) Process() error {
-	if env.Cloud != "gcloud" {
-		return errors.New("only 'gcloud' is a supported cloud type")
-	}
-
-	return nil
+type Repo struct {
+	Commit string
 }
 
-type Repo struct {
-	CommitHash string
+type RawInput struct {
+	Args  Args
+	Flags Flags
+	Env   Env
+	Repo  Repo
+}
+
+func (in RawInput) Validate() error {
+	if in.Env.Cloud != "gcloud" {
+		return errors.New("only 'gcloud' is a supported cloud type")
+	}
+	return nil
 }

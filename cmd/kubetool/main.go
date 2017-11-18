@@ -1,11 +1,12 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/upgear/go-kit/log"
 	"github.com/upgear/kubetool"
@@ -13,19 +14,20 @@ import (
 
 func main() {
 	// Set defaults.
-	input := kubetool.Input{
+	input := kubetool.RawInput{
 		Env: kubetool.Env{
 			Cloud:          envElse("KT_CLOUD", "gcloud"),
-			ContainerImage: envElse("KT_CONTAINER_IMAGE", "{{.Args.Name}}"),
+			ContainerImage: envElse("KT_CONTAINER_IMAGE", "{{.Name}}"),
 			KubernetesFile: envElse("KT_KUBERNETES_FILE", "."),
 			DockerFile:     envElse("KT_DOCKER_FILE", "."),
 			DockerContext:  envElse("KT_DOCKER_CONTEXT", "."),
 		},
 		Repo: kubetool.Repo{
-			CommitHash: "latest",
+			Commit: "latest",
 		},
 	}
 
+	// Parse flags.
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, usage(""))
 	}
@@ -34,22 +36,27 @@ func main() {
 	flag.BoolVar(&input.Flags.Save, "save", false, "Save templated kubernetes config from deploy")
 	flag.Parse()
 
+	// Parse arguments.
 	args := flag.Args()
 	if len(args) < 2 {
 		fatal(errors.New(usage("expected at least 2 arguments")))
 	}
 	input.Args = kubetool.Args{
-		Commands: strings.Split(args[0], ","),
-		Names:    args[1:],
+		Commands:   strings.Split(args[0], ","),
+		Components: args[1:],
 	}
 
+	// Inspect the repo.
 	if !input.Flags.Local {
 		fatal(kubetool.CheckRepo(&input))
 	}
 
-	// Map commands
-	cmds := make([]kubetool.Command, len(input.Commands))
-	for i, c := range input.Commands {
+	// Validate inputs.
+	fatal(input.Validate())
+
+	// Map commands.
+	cmds := make([]kubetool.Command, len(input.Args.Commands))
+	for i, c := range input.Args.Commands {
 		var ok bool
 		cmds[i], ok = kubetool.CommandMap[c]
 		if !ok {
@@ -57,17 +64,22 @@ func main() {
 		}
 	}
 
-	for _, input.Args.Name = range input.Args.Names {
-		// Run commands
+	// For each component.
+	for cidx := range input.Args.Components {
+		// Run all commands.
 		for i, cmd := range cmds {
+			cmdInput, err := kubetool.GetCommandInput(input, cidx)
+			fatal(errors.Wrap(err, "unable to parse input for component"))
+
 			if input.Flags.Verbose {
 				log.Info("starting kubetool sub-command", log.M{
-					"name":   input.Args.Name,
-					"subcmd": input.Commands[i],
+					"domain":    cmdInput.Component.Domain,
+					"component": cmdInput.Component.Name,
+					"subcmd":    input.Args.Commands[i],
 				})
 			}
-			fatal(input.Process())
-			fatal(cmd(input))
+
+			fatal(cmd(cmdInput))
 		}
 	}
 }
@@ -92,16 +104,16 @@ func usage(msg string) string {
 		msg = msg + "\n\n"
 	}
 	return msg +
-		`Usage: kubetool [Options...] <command> <name>...
+		`Usage: kubetool [Options...] <command> <domain>/<name>...
 
 Commands:
-    build    Runs docker build
+    build     Runs docker build
 
-    push     Runs docker push
+    push      Runs docker push
 
-	undeploy Delete previous kubernetes deployments
+	undeploy  Delete previous kubernetes deployments
 
-    deploy   Runs kubectl apply
+    deploy    Runs kubectl apply
 
         Options:
 
@@ -111,7 +123,7 @@ Options:
     -h --help  Print usage
     -v         Verbose output
 
-    --local    Use 'latest' for .Repo.CommitHash in template and skip pushes
+    --local    Use 'latest' for .CommitHash in env template and skip pushes
 
 Environment Variables:
     KT_DOCKER_FILE      Dockerfile
@@ -120,12 +132,20 @@ Environment Variables:
     KT_DOCKER_CONTEXT   Docker build context (directory)
     KT_CLOUD            Cloud provider (only supports 'gcloud')
 
+    All environment variables can be templated using the following variables:
+
+        {{.Domain}}  Component domain
+        {{.Name}}    Component name
+        {{.Commit}}  Repo commit (git commit hash)
+
+    Example: export KT_DOCKER_FILE="$GOPATH/src/{{.Domain}}/{{.Name}}/Dockerfile"
+
 Note:
 
-    Commands can be comma seperated: blueprint build,push,deploy example
+    Commands can be comma seperated: kubetool build,push,deploy foo/bar
 
-    Multiple names can be supplied:  blueprint build one two
+    Multiple names can be supplied:  kubetool build foo/bar abc/xyz
 
-    Multiple commands & names:       blueprint build,push,deploy one two
+    Multiple commands & names:       kubetool build,push,deploy foo/bar abc/xyz
 `
 }

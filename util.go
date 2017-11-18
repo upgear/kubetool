@@ -33,14 +33,14 @@ func logCmd(name string, params ...string) {
 	})
 }
 
-func templateString(s string, in Input) (string, error) {
+func templateString(s string, data interface{}) (string, error) {
 	tmpl, err := template.New("").Parse(s)
 	if err != nil {
 		return "", err
 	}
 
 	var b bytes.Buffer
-	if err := tmpl.Execute(&b, in); err != nil {
+	if err := tmpl.Execute(&b, data); err != nil {
 		return "", err
 	}
 

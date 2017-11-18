@@ -13,12 +13,12 @@ import (
 	"github.com/upgear/go-kit/log"
 )
 
-func Deploy(in Input) error {
-	return apply(in, in.ComputedEnv.KubernetesFile)
+func Deploy(in CommandInput) error {
+	return apply(in, in.KubernetesFile)
 }
 
-func Undeploy(in Input) error {
-	return del(in.Flags.Verbose, in.ComputedEnv.KubernetesFile)
+func Undeploy(in CommandInput) error {
+	return del(in.Verbose, in.KubernetesFile)
 }
 
 func del(dolog bool, file string) error {
@@ -42,13 +42,13 @@ func del(dolog bool, file string) error {
 	return nil
 }
 
-func apply(in Input, file string) error {
+func apply(in CommandInput, file string) error {
 	confBtys, err := ioutil.ReadFile(file)
 	if err != nil {
 		return errors.Wrapf(err, "unable to read kubernetes file: %s", file)
 	}
 
-	splitTag := strings.Split(in.ComputedEnv.ContainerImage, ":")
+	splitTag := strings.Split(in.ContainerImage, ":")
 	if len(splitTag) != 2 {
 		return errors.New("expected tag to have version")
 	}
@@ -77,7 +77,7 @@ func apply(in Input, file string) error {
 
 	if in.Flags.Verbose {
 		cmd.Stdout = os.Stdout
-		log.Info("modified tag", log.M{"tag": in.ComputedEnv.ContainerImage})
+		log.Info("modified tag", log.M{"tag": in.ContainerImage})
 		fmt.Println(string(newConf))
 		logCmd(name, params...)
 	}
