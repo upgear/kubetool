@@ -96,19 +96,19 @@ func usage(msg string) string {
 		`Usage: kubetool [Options...] <command> <name>...
 
 Commands:
-    build   Runs docker build
+    build    Runs docker build
 
-    push    Runs docker push
+    push     Runs docker push
 
-	delete  Delete previous kubernetes deployments (and test deployments)
+	undeploy Delete previous kubernetes deployments (and test deployments)
 
-    deploy  Runs kubectl apply
+    deploy   Runs kubectl apply
 
         Options:
 
             --save  Save the updated kubernetes config (with new image versions)
 
-    test    Runs kubectl apply with test config
+    test     Runs kubectl apply with test config
 
         Options:
 

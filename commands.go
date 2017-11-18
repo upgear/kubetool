@@ -3,9 +3,9 @@ package kubetool
 type Command func(Input) error
 
 var CommandMap = map[string]Command{
-	"build":  Build,
-	"push":   Push,
-	"deploy": Deploy,
-	"test":   Test,
-	"delete": Delete,
+	"build":    Build,
+	"push":     Push,
+	"undeploy": Undeploy,
+	"deploy":   Deploy,
+	"test":     Test,
 }

@@ -21,7 +21,7 @@ func Test(in Input) error {
 	return apply(in, in.ComputedEnv.KubernetesTestFile)
 }
 
-func Delete(in Input) error {
+func Undeploy(in Input) error {
 	if err := del(in.Flags.Verbose, in.ComputedEnv.KubernetesFile); err != nil {
 		return err
 	}
