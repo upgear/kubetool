@@ -48,7 +48,7 @@ type Args struct {
 
 type Flags struct {
 	Verbose bool
-	Latest  bool
+	Local   bool
 	Save    bool
 }
 

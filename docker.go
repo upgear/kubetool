@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/upgear/go-kit/log"
 )
 
 func Build(in Input) error {
@@ -30,6 +31,13 @@ func Build(in Input) error {
 
 func Push(in Input) error {
 	dolog := in.Flags.Verbose
+
+	if in.Flags.Local {
+		if dolog {
+			log.Info("skipping push because of flag", log.M{"flag": "local"})
+		}
+		return nil
+	}
 
 	if _, err := cmd(dolog, in.ComputedEnv.Cloud, "docker", "--", "push", in.ComputedEnv.ContainerImage); err != nil {
 		return errors.Wrap(err, "unable to push docker image")

@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	// Set defaults.
 	input := kubetool.Input{
 		Env: kubetool.Env{
 			Cloud:          envElse("KT_CLOUD", "gcloud"),
@@ -21,7 +22,6 @@ func main() {
 			DockerContext:  envElse("KT_DOCKER_CONTEXT", "."),
 		},
 		Repo: kubetool.Repo{
-			// Default to 'latest'
 			CommitHash: "latest",
 		},
 	}
@@ -30,8 +30,8 @@ func main() {
 		fmt.Fprintln(os.Stderr, usage(""))
 	}
 	flag.BoolVar(&input.Flags.Verbose, "v", false, "Log a bunch of stuff")
-	flag.BoolVar(&input.Flags.Latest, "latest", false, "Use 'latest' for .Repo.CommitHash in template")
-	flag.BoolVar(&input.Flags.Save, "save", false, "Save deployed kubernetes config")
+	flag.BoolVar(&input.Flags.Local, "local", false, "Use 'latest' for .Repo.CommitHash in template and skip push")
+	flag.BoolVar(&input.Flags.Save, "save", false, "Save templated kubernetes config from deploy")
 	flag.Parse()
 
 	args := flag.Args()
@@ -43,7 +43,7 @@ func main() {
 		Names:    args[1:],
 	}
 
-	if !input.Flags.Latest {
+	if !input.Flags.Local {
 		fatal(kubetool.CheckRepo(&input))
 	}
 
@@ -111,7 +111,7 @@ Options:
     -h --help  Print usage
     -v         Verbose output
 
-    --latest   Use 'latest' for .Repo.CommitHash in template
+    --local    Use 'latest' for .Repo.CommitHash in template and skip pushes
 
 Environment Variables:
     KT_DOCKER_FILE      Dockerfile
