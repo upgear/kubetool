@@ -7,5 +7,4 @@ var CommandMap = map[string]Command{
 	"push":     Push,
 	"undeploy": Undeploy,
 	"deploy":   Deploy,
-	"test":     Test,
 }

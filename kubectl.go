@@ -17,19 +17,8 @@ func Deploy(in Input) error {
 	return apply(in, in.ComputedEnv.KubernetesFile)
 }
 
-func Test(in Input) error {
-	return apply(in, in.ComputedEnv.KubernetesTestFile)
-}
-
 func Undeploy(in Input) error {
-	if err := del(in.Flags.Verbose, in.ComputedEnv.KubernetesFile); err != nil {
-		return err
-	}
-	if err := del(in.Flags.Verbose, in.ComputedEnv.KubernetesTestFile); err != nil {
-		return err
-	}
-
-	return nil
+	return del(in.Flags.Verbose, in.ComputedEnv.KubernetesFile)
 }
 
 func del(dolog bool, file string) error {
