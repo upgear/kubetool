@@ -32,9 +32,9 @@ func Build(in CommandInput) error {
 func Push(in CommandInput) error {
 	dolog := in.Flags.Verbose
 
-	if in.Flags.Local {
+	if in.Flags.Env == DevEnv {
 		if dolog {
-			log.Info("skipping push because of flag", log.M{"flag": "local"})
+			log.Info("skipping push because of flag", log.M{"env": in.Flags.Env})
 		}
 		return nil
 	}

@@ -7,37 +7,53 @@ import (
 
 type Command func(CommandInput) error
 
+const DevEnv = "dev"
+
 var CommandMap = map[string]Command{
-	"build":    Build,
-	"push":     Push,
-	"undeploy": Undeploy,
-	"deploy":   Deploy,
+	"build":   Build,
+	"push":    Push,
+	"install": Install,
+	"upgrade": Upgrade,
+	"kill":    Kill,
+	"delete":  Delete,
 }
 
 func ParseComponent(s string) (Component, error) {
 	splt := strings.Split(s, "/")
 	if len(splt) != 2 {
-		return Component{}, fmt.Errorf("unable parse component %q into <domain>/<name>", s)
+		return Component{}, fmt.Errorf("unable parse component %q into <chart>/<release>", s)
 	}
 	return Component{
-		Domain: splt[0],
-		Name:   splt[1],
+		Chart:   splt[0],
+		Release: splt[1],
 	}, nil
 }
 
-// Component is made up of a domain and a component name.
+// Component is made up of a helm chart and a release name.
 type Component struct {
-	Domain string
-	Name   string
+	Chart   string
+	Release string
 }
 
 // ComandInput is the data that is passed to a command. It includes processed
 // versions of environment templates.
 type CommandInput struct {
-	Component Component
+	Component
 	Env
 	Flags
 	Repo
+}
+
+// EnvTemplateData is the data used to excute environment variable templating.
+type EnvTemplateData struct {
+	Component
+	Repo
+	// Env is the software environment (ie. "dev", "stg", etc.)
+	Env string
+}
+
+// KubeTemplateData is the data used to execute a kubernetes template file.
+type KubeTemplateData struct {
 }
 
 // GetCommandInput translates RawInput into CommandInput for a given component
@@ -50,10 +66,7 @@ func GetCommandInput(in RawInput, cmpIdx int) (cd CommandInput, err error) {
 	}
 
 	// Parse env templates.
-	tmplData := struct {
-		Component
-		Repo
-	}{cd.Component, in.Repo}
+	tmplData := EnvTemplateData{cd.Component, in.Repo, in.Flags.Env}
 	cd.Env.Cloud, err = templateString(in.Env.Cloud, tmplData)
 	if err != nil {
 		return
@@ -62,7 +75,15 @@ func GetCommandInput(in RawInput, cmpIdx int) (cd CommandInput, err error) {
 	if err != nil {
 		return
 	}
-	cd.Env.KubernetesFile, err = templateString(in.Env.KubernetesFile, tmplData)
+	cd.Env.HelmChartPath, err = templateString(in.Env.HelmChartPath, tmplData)
+	if err != nil {
+		return
+	}
+	cd.Env.HelmBaseValueFile, err = templateString(in.Env.HelmBaseValueFile, tmplData)
+	if err != nil {
+		return
+	}
+	cd.Env.HelmEnvValueFile, err = templateString(in.Env.HelmEnvValueFile, tmplData)
 	if err != nil {
 		return
 	}

@@ -16,11 +16,13 @@ func main() {
 	// Set defaults.
 	input := kubetool.RawInput{
 		Env: kubetool.Env{
-			Cloud:          envElse("KT_CLOUD", "gcloud"),
-			ContainerImage: envElse("KT_CONTAINER_IMAGE", "{{.Name}}"),
-			KubernetesFile: envElse("KT_KUBERNETES_FILE", "."),
-			DockerFile:     envElse("KT_DOCKER_FILE", "."),
-			DockerContext:  envElse("KT_DOCKER_CONTEXT", "."),
+			Cloud:             envElse("KT_CLOUD", "gcloud"),
+			ContainerImage:    envElse("KT_CONTAINER_IMAGE", "{{.Name}}"),
+			HelmChartPath:     envElse("KT_HELM_CHART_PATH", "."),
+			HelmBaseValueFile: envElse("KT_HELM_BASE_VALUE_FILE", "."),
+			HelmEnvValueFile:  envElse("KT_HELM_ENV_VALUE_FILE", "."),
+			DockerFile:        envElse("KT_DOCKER_FILE", "."),
+			DockerContext:     envElse("KT_DOCKER_CONTEXT", "."),
 		},
 		Repo: kubetool.Repo{
 			Commit: "latest",
@@ -32,8 +34,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, usage(""))
 	}
 	flag.BoolVar(&input.Flags.Verbose, "v", false, "Log a bunch of stuff")
-	flag.BoolVar(&input.Flags.Local, "local", false, "Use 'latest' for .Repo.CommitHash in template and skip push")
-	flag.BoolVar(&input.Flags.Save, "save", false, "Save templated kubernetes config from deploy")
+	flag.StringVar(&input.Flags.Env, "env", "dev", "Environment")
 	flag.Parse()
 
 	// Parse arguments.
@@ -46,13 +47,15 @@ func main() {
 		Components: args[1:],
 	}
 
-	// Inspect the repo.
-	if !input.Flags.Local {
-		fatal(kubetool.CheckRepo(&input))
-	}
-
 	// Validate inputs.
-	fatal(input.Validate())
+	fatal(input.Process())
+
+	// Inspect the repo.
+	if err := kubetool.CheckRepo(&input); err != nil {
+		if input.Flags.Env != kubetool.DevEnv {
+			fatal(errors.Wrapf(err, "repo not acceptable for %q environment", input.Flags.Env))
+		}
+	}
 
 	// Map commands.
 	cmds := make([]kubetool.Command, len(input.Args.Commands))
@@ -73,9 +76,9 @@ func main() {
 
 			if input.Flags.Verbose {
 				log.Info("starting kubetool sub-command", log.M{
-					"domain":    cmdInput.Component.Domain,
-					"component": cmdInput.Component.Name,
-					"subcmd":    input.Args.Commands[i],
+					"chart":   cmdInput.Component.Chart,
+					"release": cmdInput.Component.Release,
+					"command": input.Args.Commands[i],
 				})
 			}
 
@@ -104,48 +107,51 @@ func usage(msg string) string {
 		msg = msg + "\n\n"
 	}
 	return msg +
-		`Usage: kubetool [Options...] <command> <domain>/<name>...
+		`Usage: kubetool [Options...] <comma-seperated-commands> <chart>/<release>...
 
 Commands:
     build     Runs docker build
 
     push      Runs docker push
 
-	undeploy  Delete previous kubernetes deployments
+    install   Runs helm install
 
-    deploy    Runs kubectl apply
+    upgrade   Runs helm upgrade
 
-        Options:
+    kill      Runs kubectl delete pod (useful for development)
 
-            --save  Save the updated kubernetes config (with new image versions)
+    delete    Runs helm delete
 
 Options:
+    -e --env   Environment (defaults to "dev"). If it is anything other than
+               "dev" then the repo must be in a clean state.
     -h --help  Print usage
     -v         Verbose output
 
-    --local    Use 'latest' for .CommitHash in env template and skip pushes
-
 Environment Variables:
-    KT_DOCKER_FILE      Dockerfile
-    KT_KUBERNETES_FILE  Kubernetes config
-    KT_CONTAINER_IMAGE  Template for container image (docker tag)
-    KT_DOCKER_CONTEXT   Docker build context (directory)
-    KT_CLOUD            Cloud provider (only supports 'gcloud')
+    KT_DOCKER_FILE           Dockerfile
+    KT_HELM_CHART_PATH       Helm chart (directory)
+    KT_HELM_BASE_VALUE_FILE  The first layer of helm values
+    KT_HELM_ENV_VALUE_FILE   The second layer of helm values (env specific)
+    KT_CONTAINER_IMAGE       Template for container image (docker tag)
+    KT_DOCKER_CONTEXT        Docker build context (directory)
+    KT_CLOUD                 Cloud provider (only supports 'gcloud')
 
     All environment variables can be templated using the following variables:
 
-        {{.Domain}}  Component domain
-        {{.Name}}    Component name
-        {{.Commit}}  Repo commit (git commit hash)
+        {{.Env}}      Environment (i.e. "dev", "stg", "prd")
+        {{.Chart}}    Helm chart
+        {{.Release}}  Helm release name
+        {{.Commit}}   Repo commit (git commit hash)
 
-    Example: export KT_DOCKER_FILE="$GOPATH/src/{{.Domain}}/{{.Name}}/Dockerfile"
+    Example: export KT_DOCKER_FILE="$GOPATH/src/{{.Chart}}/Dockerfile"
 
 Note:
 
-    Commands can be comma seperated: kubetool build,push,deploy foo/bar
+    Commands can be comma seperated: kubetool build,push,install foo/bar
 
     Multiple names can be supplied:  kubetool build foo/bar abc/xyz
 
-    Multiple commands & names:       kubetool build,push,deploy foo/bar abc/xyz
+    Multiple commands & names:       kubetool build,push,install foo/bar abc/xyz
 `
 }

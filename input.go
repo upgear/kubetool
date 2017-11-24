@@ -1,6 +1,8 @@
 package kubetool
 
 import (
+	"strings"
+
 	"github.com/pkg/errors"
 )
 
@@ -11,16 +13,17 @@ type Args struct {
 
 type Flags struct {
 	Verbose bool
-	Local   bool
-	Save    bool
+	Env     string
 }
 
 type Env struct {
-	Cloud          string
-	ContainerImage string
-	KubernetesFile string
-	DockerFile     string
-	DockerContext  string
+	Cloud             string
+	ContainerImage    string
+	HelmChartPath     string
+	HelmBaseValueFile string
+	HelmEnvValueFile  string
+	DockerFile        string
+	DockerContext     string
 }
 
 type Repo struct {
@@ -34,7 +37,9 @@ type RawInput struct {
 	Repo  Repo
 }
 
-func (in RawInput) Validate() error {
+func (in *RawInput) Process() error {
+	in.Flags.Env = strings.ToLower(in.Flags.Env)
+
 	if in.Env.Cloud != "gcloud" {
 		return errors.New("only 'gcloud' is a supported cloud type")
 	}
