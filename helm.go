@@ -32,6 +32,11 @@ func Upgrade(in CommandInput) (err error) {
 	return
 }
 
+func Test(in CommandInput) (err error) {
+	_, err = cmd(in.Flags.Verbose, "helm", "test", "--debug", "--cleanup", in.Component.Release)
+	return
+}
+
 func Delete(in CommandInput) (err error) {
 	_, err = cmd(in.Flags.Verbose, "helm", "delete", in.Component.Release)
 	return

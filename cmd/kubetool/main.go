@@ -118,6 +118,8 @@ Commands:
 
     upgrade   Runs helm upgrade
 
+    test      Runs helm test
+
     kill      Runs kubectl delete pod (useful for development)
 
     delete    Runs helm delete

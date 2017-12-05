@@ -14,6 +14,7 @@ var CommandMap = map[string]Command{
 	"push":    Push,
 	"install": Install,
 	"upgrade": Upgrade,
+	"test":    Test,
 	"kill":    Kill,
 	"delete":  Delete,
 }
