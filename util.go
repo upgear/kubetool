@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"io"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -15,11 +17,14 @@ func cmd(dolog bool, name string, params ...string) (string, error) {
 	cmd := exec.Command(name, params...)
 	var stdout, stderr bytes.Buffer
 	cmd.Stderr = &stderr
-	cmd.Stdout = &stdout
 
 	if dolog {
+		cmd.Stdout = io.MultiWriter(&stdout, os.Stdout)
 		logCmd(name, params...)
+	} else {
+		cmd.Stdout = &stdout
 	}
+
 	if err := cmd.Run(); err != nil {
 		return "", errors.Wrapf(err, "unable to execute command: %s %s: %s", name, strings.Join(params, " "), stderr.String())
 	}
