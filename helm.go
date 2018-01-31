@@ -7,6 +7,7 @@ func Install(in CommandInput) (err error) {
 		"install", in.HelmChartPath,
 		"--name", in.Release,
 		"--values", in.HelmBaseValueFile,
+		"--set", "image=" + in.ContainerImage,
 	}
 
 	if err := appendEnvConfig(in, &args); err != nil {
@@ -21,6 +22,7 @@ func Upgrade(in CommandInput) (err error) {
 	args := []string{
 		"upgrade", in.Release, in.HelmChartPath,
 		"--values", in.HelmBaseValueFile,
+		"--set", "image=" + in.ContainerImage,
 	}
 
 	if err := appendEnvConfig(in, &args); err != nil {
