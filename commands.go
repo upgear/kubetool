@@ -66,15 +66,28 @@ func GetCommandInput(in RawInput, cmpIdx int) (cd CommandInput, err error) {
 		return
 	}
 
+	cd.Env.HelmImages = make([]string, len(in.Env.HelmImages))
+	cd.Env.ContainerImages = make([]string, len(in.Env.ContainerImages))
+	cd.Env.DockerFiles = make([]string, len(in.Env.DockerFiles))
+	cd.Env.DockerContexts = make([]string, len(in.Env.DockerContexts))
+
 	// Parse env templates.
 	tmplData := EnvTemplateData{cd.Component, in.Repo, in.Flags.Env}
 	cd.Env.Cloud, err = templateString(in.Env.Cloud, tmplData)
 	if err != nil {
 		return
 	}
-	cd.Env.ContainerImage, err = templateString(in.Env.ContainerImage, tmplData)
-	if err != nil {
-		return
+	for i := range in.Env.HelmImages {
+		cd.Env.HelmImages[i], err = templateString(in.Env.HelmImages[i], tmplData)
+		if err != nil {
+			return
+		}
+	}
+	for i := range in.Env.ContainerImages {
+		cd.Env.ContainerImages[i], err = templateString(in.Env.ContainerImages[i], tmplData)
+		if err != nil {
+			return
+		}
 	}
 	cd.Env.HelmChartPath, err = templateString(in.Env.HelmChartPath, tmplData)
 	if err != nil {
@@ -88,13 +101,17 @@ func GetCommandInput(in RawInput, cmpIdx int) (cd CommandInput, err error) {
 	if err != nil {
 		return
 	}
-	cd.Env.DockerFile, err = templateString(in.Env.DockerFile, tmplData)
-	if err != nil {
-		return
+	for i := range in.Env.DockerFiles {
+		cd.Env.DockerFiles[i], err = templateString(in.Env.DockerFiles[i], tmplData)
+		if err != nil {
+			return
+		}
 	}
-	cd.Env.DockerContext, err = templateString(in.Env.DockerContext, tmplData)
-	if err != nil {
-		return
+	for i := range in.Env.DockerContexts {
+		cd.Env.DockerContexts[i], err = templateString(in.Env.DockerContexts[i], tmplData)
+		if err != nil {
+			return
+		}
 	}
 
 	// Pass-thru data.

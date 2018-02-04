@@ -88,6 +88,10 @@ func repoIsSynced(in *RawInput) error {
 	}
 
 	in.Repo.Commit = localM[master]
+	if len(in.Repo.Commit) > 6 {
+		// Short (6 char) commit sha
+		in.Repo.Commit = in.Repo.Commit[0:6]
+	}
 
 	return nil
 }

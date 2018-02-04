@@ -1,13 +1,16 @@
 package kubetool
 
-import "os"
+import (
+	"os"
+	"strings"
+)
 
 func Install(in CommandInput) (err error) {
 	args := []string{
 		"install", in.HelmChartPath,
 		"--name", in.Release,
 		"--values", in.HelmBaseValueFile,
-		"--set", "image=" + in.ContainerImage,
+		"--set", helmVals(in),
 	}
 
 	if err := appendEnvConfig(in, &args); err != nil {
@@ -18,11 +21,19 @@ func Install(in CommandInput) (err error) {
 	return
 }
 
+func helmVals(in CommandInput) string {
+	var imgs []string
+	for i, img := range in.HelmImages {
+		imgs = append(imgs, img+"="+in.ContainerImages[i])
+	}
+	return strings.Join(imgs, ",")
+}
+
 func Upgrade(in CommandInput) (err error) {
 	args := []string{
 		"upgrade", in.Release, in.HelmChartPath,
 		"--values", in.HelmBaseValueFile,
-		"--set", "image=" + in.ContainerImage,
+		"--set", helmVals(in),
 	}
 
 	if err := appendEnvConfig(in, &args); err != nil {

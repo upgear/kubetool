@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 
 	"github.com/upgear/go-kit/log"
@@ -15,19 +16,12 @@ import (
 func main() {
 	// Set defaults.
 	input := kubetool.RawInput{
-		Env: kubetool.Env{
-			Cloud:             envElse("KT_CLOUD", "gcloud"),
-			ContainerImage:    envElse("KT_CONTAINER_IMAGE", "{{.Name}}"),
-			HelmChartPath:     envElse("KT_HELM_CHART_PATH", "."),
-			HelmBaseValueFile: envElse("KT_HELM_BASE_VALUE_FILE", "."),
-			HelmEnvValueFile:  envElse("KT_HELM_ENV_VALUE_FILE", "."),
-			DockerFile:        envElse("KT_DOCKER_FILE", "."),
-			DockerContext:     envElse("KT_DOCKER_CONTEXT", "."),
-		},
 		Repo: kubetool.Repo{
 			Commit: "latest",
 		},
 	}
+
+	envconfig.MustProcess("KT", &input.Env)
 
 	// Parse flags.
 	flag.Usage = func() {
@@ -35,6 +29,8 @@ func main() {
 	}
 	flag.BoolVar(&input.Flags.Verbose, "v", false, "Log a bunch of stuff")
 	flag.StringVar(&input.Flags.Env, "env", "dev", "Environment")
+	var overrideRepoCheck bool
+	flag.BoolVar(&overrideRepoCheck, "norepocheck", false, "Override repo integrity check")
 	flag.Parse()
 
 	// Parse arguments.
@@ -51,9 +47,11 @@ func main() {
 	fatal(input.Process())
 
 	// Inspect the repo.
-	if err := kubetool.CheckRepo(&input); err != nil {
-		if input.Flags.Env != kubetool.DevEnv {
-			fatal(errors.Wrapf(err, "repo not acceptable for %q environment", input.Flags.Env))
+	if !overrideRepoCheck {
+		if err := kubetool.CheckRepo(&input); err != nil {
+			if input.Flags.Env != kubetool.DevEnv {
+				fatal(errors.Wrapf(err, "repo not acceptable for %q environment", input.Flags.Env))
+			}
 		}
 	}
 
@@ -131,12 +129,13 @@ Options:
     -v         Verbose output
 
 Environment Variables:
-    KT_DOCKER_FILE           Dockerfile
+    KT_DOCKER_FILES          Dockerfile
+    KT_HELM_IMAGES           Helm images (variable names)
     KT_HELM_CHART_PATH       Helm chart (directory)
     KT_HELM_BASE_VALUE_FILE  The first layer of helm values
     KT_HELM_ENV_VALUE_FILE   The second layer of helm values (env specific)
-    KT_CONTAINER_IMAGE       Template for container image (docker tag)
-    KT_DOCKER_CONTEXT        Docker build context (directory)
+    KT_CONTAINER_IMAGES      Template for container image (docker tag)
+    KT_DOCKER_CONTEXTS       Docker build context (directory)
     KT_CLOUD                 Cloud provider (only supports 'gcloud')
 
     All environment variables can be templated using the following variables:
