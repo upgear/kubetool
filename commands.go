@@ -36,6 +36,10 @@ type Component struct {
 	Release string
 }
 
+func (c Component) ChartRelease() string {
+	return fmt.Sprintf("%s-%s", c.Chart, c.Release)
+}
+
 // ComandInput is the data that is passed to a command. It includes processed
 // versions of environment templates.
 type CommandInput struct {

@@ -8,7 +8,7 @@ import (
 func Install(in CommandInput) (err error) {
 	args := []string{
 		"install", in.HelmChartPath,
-		"--name", in.Release,
+		"--name", in.ChartRelease(),
 		"--values", in.HelmBaseValueFile,
 		"--set", helmVals(in),
 	}
@@ -31,7 +31,7 @@ func helmVals(in CommandInput) string {
 
 func Upgrade(in CommandInput) (err error) {
 	args := []string{
-		"upgrade", in.Release, in.HelmChartPath,
+		"upgrade", in.ChartRelease(), in.HelmChartPath,
 		"--values", in.HelmBaseValueFile,
 		"--set", helmVals(in),
 	}
@@ -46,12 +46,12 @@ func Upgrade(in CommandInput) (err error) {
 }
 
 func Test(in CommandInput) (err error) {
-	_, err = cmd(in.Flags.Verbose, "helm", "test", "--debug", "--cleanup", in.Component.Release)
+	_, err = cmd(in.Flags.Verbose, "helm", "test", "--debug", "--cleanup", in.Component.ChartRelease())
 	return
 }
 
 func Delete(in CommandInput) (err error) {
-	_, err = cmd(in.Flags.Verbose, "helm", "delete", in.Component.Release)
+	_, err = cmd(in.Flags.Verbose, "helm", "delete", in.Component.ChartRelease())
 	return
 }
 
