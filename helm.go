@@ -12,6 +12,9 @@ func Install(in CommandInput) (err error) {
 		"--values", in.HelmBaseValueFile,
 		"--set", helmVals(in),
 	}
+	if in.Verbose {
+		args = append(args, "--debug")
+	}
 
 	if err := appendEnvConfig(in, &args); err != nil {
 		return err
@@ -34,6 +37,9 @@ func Upgrade(in CommandInput) (err error) {
 		"upgrade", in.ChartRelease(), in.HelmChartPath,
 		"--values", in.HelmBaseValueFile,
 		"--set", helmVals(in),
+	}
+	if in.Verbose {
+		args = append(args, "--debug")
 	}
 
 	if err := appendEnvConfig(in, &args); err != nil {
