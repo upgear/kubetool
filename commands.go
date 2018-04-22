@@ -10,13 +10,12 @@ type Command func(CommandInput) error
 const DevEnv = "dev"
 
 var CommandMap = map[string]Command{
-	"build":   Build,
-	"push":    Push,
-	"install": Install,
-	"upgrade": Upgrade,
-	"test":    Test,
-	"kill":    Kill,
-	"delete":  Delete,
+	"build":  Build,
+	"push":   Push,
+	"apply":  Apply,
+	"test":   Test,
+	"kill":   Kill,
+	"delete": Delete,
 }
 
 func ParseComponent(s string) (Component, error) {
@@ -89,6 +88,9 @@ func GetCommandInput(in RawInput, cmpIdx int) (cd CommandInput, err error) {
 	}
 	for i := range in.Env.ContainerImages {
 		cd.Env.ContainerImages[i], err = templateString(in.Env.ContainerImages[i], tmplData)
+		if in.Flags.Env == DevEnv {
+			cd.Env.ContainerImages[i] = strings.Replace(cd.Env.ContainerImages[i], "/", "-", -1)
+		}
 		if err != nil {
 			return
 		}

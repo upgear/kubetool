@@ -68,6 +68,7 @@ func main() {
 	// Set environment vars based on deployment environment.
 	switch input.Flags.Env {
 	case kubetool.DevEnv:
+		log.Info("setting docker env")
 		fatal(kubetool.SetDevDockerEnv())
 	}
 
@@ -86,6 +87,7 @@ func main() {
 				})
 			}
 
+			fmt.Println("ADKSLAJS")
 			fatal(cmd(cmdInput))
 		}
 	}
@@ -118,9 +120,7 @@ Commands:
 
     push      Runs docker push
 
-    install   Runs helm install
-
-    upgrade   Runs helm upgrade
+    apply     Runs helm upgrade --install
 
     test      Runs helm test
 
@@ -155,10 +155,10 @@ Environment Variables:
 
 Note:
 
-    Commands can be comma seperated: kubetool build,push,install foo/bar
+    Commands can be comma seperated: kubetool build,push,apply foo/bar
 
     Multiple names can be supplied:  kubetool build foo/bar abc/xyz
 
-    Multiple commands & names:       kubetool build,push,install foo/bar abc/xyz
+    Multiple commands & names:       kubetool build,push,apply foo/bar abc/xyz
 `
 }

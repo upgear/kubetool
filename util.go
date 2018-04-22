@@ -66,7 +66,7 @@ func minikubeDockerEnv() (string, error) {
 	var buf bytes.Buffer
 	c.Stdout = &buf
 	if err := c.Run(); err != nil {
-		return "", err
+		return "", errors.Wrap(err, "running command 'minikube docker-env'")
 	}
 	return buf.String(), nil
 }
@@ -89,7 +89,9 @@ func parseEnvExports(s string) []kv {
 			if len(splt) == 2 {
 				kvs = append(kvs, kv{
 					key: strings.TrimSpace(splt[0]),
-					val: strings.TrimSpace(splt[1]),
+					val: strings.TrimSpace(
+						strings.TrimSuffix(strings.TrimPrefix(splt[1], `"`), `"`),
+					),
 				})
 			}
 		}

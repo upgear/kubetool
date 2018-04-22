@@ -5,38 +5,19 @@ import (
 	"strings"
 )
 
-func Install(in CommandInput) (err error) {
-	args := []string{
-		"--kube-context", kubeContext(in),
-		"install", in.HelmChartPath,
-		"--name", in.ChartRelease(),
-		"--values", in.HelmBaseValueFile,
-		"--set", helmVals(in),
-	}
-	if in.Verbose {
-		args = append(args, "--debug")
-	}
-
-	if err := appendEnvConfig(in, &args); err != nil {
-		return err
-	}
-
-	_, err = cmd(in.Flags.Verbose, "helm", args...)
-	return
-}
-
 func helmVals(in CommandInput) string {
 	var imgs []string
 	for i, img := range in.HelmImages {
-		imgs = append(imgs, img+"="+in.ContainerImages[i])
+		imgs = append(imgs, img+"="+in.Env.ContainerImages[i])
 	}
 	return strings.Join(imgs, ",")
 }
 
-func Upgrade(in CommandInput) (err error) {
+func Apply(in CommandInput) (err error) {
 	args := []string{
 		"--kube-context", kubeContext(in),
 		"upgrade", in.ChartRelease(), in.HelmChartPath,
+		"--install",
 		"--values", in.HelmBaseValueFile,
 		"--set", helmVals(in),
 	}

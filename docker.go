@@ -45,7 +45,7 @@ func Push(in CommandInput) error {
 			continue
 		}
 
-		if _, err := cmd(dolog, in.Cloud, "docker", "--", "push", in.ContainerImages[i]); err != nil {
+		if _, err := cmd(dolog, in.Cloud, "docker", "--", "push", in.Env.ContainerImages[i]); err != nil {
 			return errors.Wrap(err, "unable to push docker image")
 		}
 	}
