@@ -7,6 +7,7 @@ import (
 
 func Install(in CommandInput) (err error) {
 	args := []string{
+		"--kube-context", kubeContext(in),
 		"install", in.HelmChartPath,
 		"--name", in.ChartRelease(),
 		"--values", in.HelmBaseValueFile,
@@ -34,6 +35,7 @@ func helmVals(in CommandInput) string {
 
 func Upgrade(in CommandInput) (err error) {
 	args := []string{
+		"--kube-context", kubeContext(in),
 		"upgrade", in.ChartRelease(), in.HelmChartPath,
 		"--values", in.HelmBaseValueFile,
 		"--set", helmVals(in),
@@ -52,12 +54,13 @@ func Upgrade(in CommandInput) (err error) {
 }
 
 func Test(in CommandInput) (err error) {
-	_, err = cmd(in.Flags.Verbose, "helm", "test", "--debug", "--cleanup", in.Component.ChartRelease())
+	_, err = cmd(in.Flags.Verbose, "helm", "--kube-context", kubeContext(in), "test", "--debug", "--cleanup", in.Component.ChartRelease())
+
 	return
 }
 
 func Delete(in CommandInput) (err error) {
-	_, err = cmd(in.Flags.Verbose, "helm", "delete", in.Component.ChartRelease())
+	_, err = cmd(in.Flags.Verbose, "helm", "--kube-context", kubeContext(in), "delete", in.Component.ChartRelease())
 	return
 }
 

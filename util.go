@@ -51,3 +51,55 @@ func templateString(s string, data interface{}) (string, error) {
 
 	return b.String(), nil
 }
+
+func SetDevDockerEnv() error {
+	env, err := minikubeDockerEnv()
+	if err != nil {
+		return err
+	}
+	setEnvs(parseEnvExports(env))
+	return nil
+}
+
+func minikubeDockerEnv() (string, error) {
+	c := exec.Command("minikube", "docker-env")
+	var buf bytes.Buffer
+	c.Stdout = &buf
+	if err := c.Run(); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
+type kv struct {
+	key string
+	val string
+}
+
+func parseEnvExports(s string) []kv {
+	lines := strings.Split(s, "\n")
+
+	var kvs []kv
+
+	for _, ln := range lines {
+		ln = strings.TrimSpace(ln)
+		if strings.HasPrefix(ln, "export") {
+			ln = strings.TrimSpace(strings.TrimPrefix(ln, "export"))
+			splt := strings.Split(ln, "=")
+			if len(splt) == 2 {
+				kvs = append(kvs, kv{
+					key: strings.TrimSpace(splt[0]),
+					val: strings.TrimSpace(splt[1]),
+				})
+			}
+		}
+	}
+
+	return kvs
+}
+
+func setEnvs(envs []kv) {
+	for _, kv := range envs {
+		os.Setenv(kv.key, kv.val)
+	}
+}

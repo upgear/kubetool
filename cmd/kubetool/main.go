@@ -65,6 +65,12 @@ func main() {
 		}
 	}
 
+	// Set environment vars based on deployment environment.
+	switch input.Flags.Env {
+	case kubetool.DevEnv:
+		fatal(kubetool.SetDevDockerEnv())
+	}
+
 	// For each component.
 	for cidx := range input.Args.Components {
 		// Run all commands.
