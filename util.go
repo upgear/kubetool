@@ -52,6 +52,14 @@ func templateString(s string, data interface{}) (string, error) {
 	return b.String(), nil
 }
 
+func kubeContext(in CommandInput) string {
+	ctx, ok := in.Env.KubeContextMap[in.Flags.Env]
+	if !ok {
+		return "minikube"
+	}
+	return ctx
+}
+
 func SetDevDockerEnv() error {
 	env, err := minikubeDockerEnv()
 	if err != nil {

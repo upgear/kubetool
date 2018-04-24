@@ -9,14 +9,9 @@ type Command func(CommandInput) error
 
 const DevEnv = "dev"
 
-var CommandMap = map[string]Command{
-	"build":  Build,
-	"push":   Push,
-	"apply":  Apply,
-	"test":   Test,
-	"kill":   Kill,
-	"delete": Delete,
-}
+// TODO: Revisit "helm test command"
+var Commands = []Command{Build, Push, Apply}
+var CommandNames = []string{"build", "push", "apply"}
 
 func ParseComponent(s string) (Component, error) {
 	splt := strings.Split(s, "/")

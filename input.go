@@ -7,7 +7,6 @@ import (
 )
 
 type Args struct {
-	Commands   []string
 	Components []string
 }
 

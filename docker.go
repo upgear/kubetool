@@ -11,9 +11,7 @@ func Build(in CommandInput) error {
 	for i := range in.Env.ContainerImages {
 		if _, err := os.Stat(in.Env.DockerFiles[i]); os.IsNotExist(err) {
 			// path/to/whatever does not exist
-			if in.Flags.Verbose {
-				log.Info("skipping build because no dockerfile", log.M{"env": in.Env.DockerFiles[i]})
-			}
+			log.Info("skipping build because no dockerfile", log.M{"env": in.Env.DockerFiles[i]})
 			continue
 		}
 
@@ -32,16 +30,12 @@ func Push(in CommandInput) error {
 		dolog := in.Flags.Verbose
 
 		if in.Flags.Env == DevEnv {
-			if dolog {
-				log.Info("skipping push because of flag", log.M{"env": in.Flags.Env})
-			}
+			log.Info("skipping push because of flag", log.M{"env": in.Flags.Env})
 			return nil
 		}
 
 		if _, err := os.Stat(in.Env.DockerFiles[i]); os.IsNotExist(err) {
-			if in.Flags.Verbose {
-				log.Info("skipping push because no dockerfile", log.M{"env": in.Env.DockerFiles[i]})
-			}
+			log.Info("skipping push because no dockerfile", log.M{"env": in.Env.DockerFiles[i]})
 			continue
 		}
 

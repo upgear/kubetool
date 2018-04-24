@@ -34,11 +34,14 @@ func Apply(in CommandInput) (err error) {
 	return
 }
 
+/*
+// TODO: Revisit
 func Test(in CommandInput) (err error) {
 	_, err = cmd(in.Flags.Verbose, "helm", "--kube-context", kubeContext(in), "test", "--debug", "--cleanup", in.Component.ChartRelease())
 
 	return
 }
+*/
 
 func Delete(in CommandInput) (err error) {
 	_, err = cmd(in.Flags.Verbose, "helm", "--kube-context", kubeContext(in), "delete", in.Component.ChartRelease())
