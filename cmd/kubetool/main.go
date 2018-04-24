@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 
@@ -65,11 +66,13 @@ func main() {
 		}
 	}
 
-	// Set environment vars based on deployment environment.
+	// Set environment-specific values.
 	switch input.Flags.Env {
 	case kubetool.DevEnv:
 		log.Info("setting docker env")
 		fatal(kubetool.SetDevDockerEnv())
+		// Set commit to a random string so that kubernetes will refresh every time.
+		input.Repo.Commit = uuid.New().String()
 	}
 
 	// For each component.
@@ -87,7 +90,6 @@ func main() {
 				})
 			}
 
-			fmt.Println("ADKSLAJS")
 			fatal(cmd(cmdInput))
 		}
 	}
