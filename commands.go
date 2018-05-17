@@ -68,6 +68,7 @@ func GetCommandInput(in RawInput, cmpIdx int) (cd CommandInput, err error) {
 	cd.Env.ContainerImages = make([]string, len(in.Env.ContainerImages))
 	cd.Env.DockerFiles = make([]string, len(in.Env.DockerFiles))
 	cd.Env.DockerContexts = make([]string, len(in.Env.DockerContexts))
+	cd.Env.KubeContextMap = in.Env.KubeContextMap
 
 	// Parse env templates.
 	tmplData := EnvTemplateData{cd.Component, in.Repo, in.Flags.Env}
