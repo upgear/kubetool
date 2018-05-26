@@ -3,9 +3,11 @@ package kubetool
 import (
 	"fmt"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
-type Command func(CommandInput) error
+type Command func(CommandInput, *State) error
 
 const DevEnv = "dev"
 
@@ -64,32 +66,18 @@ func GetCommandInput(in RawInput, cmpIdx int) (cd CommandInput, err error) {
 		return
 	}
 
-	cd.Env.HelmImages = make([]string, len(in.Env.HelmImages))
-	cd.Env.ContainerImages = make([]string, len(in.Env.ContainerImages))
-	cd.Env.DockerFiles = make([]string, len(in.Env.DockerFiles))
+	// Consider getting rid of this field copying b/c its brittle to change.
+	cd.Env.Components = in.Env.Components
+	cd.Env.DockerFileDirs = make([]string, len(in.Env.DockerFileDirs))
 	cd.Env.DockerContexts = make([]string, len(in.Env.DockerContexts))
 	cd.Env.KubeContextMap = in.Env.KubeContextMap
+	cd.Env.DockerRegistryBase = in.Env.DockerRegistryBase
 
 	// Parse env templates.
 	tmplData := EnvTemplateData{cd.Component, in.Repo, in.Flags.Env}
 	cd.Env.Cloud, err = templateString(in.Env.Cloud, tmplData)
 	if err != nil {
 		return
-	}
-	for i := range in.Env.HelmImages {
-		cd.Env.HelmImages[i], err = templateString(in.Env.HelmImages[i], tmplData)
-		if err != nil {
-			return
-		}
-	}
-	for i := range in.Env.ContainerImages {
-		cd.Env.ContainerImages[i], err = templateString(in.Env.ContainerImages[i], tmplData)
-		if in.Flags.Env == DevEnv {
-			cd.Env.ContainerImages[i] = strings.Replace(cd.Env.ContainerImages[i], "/", "-", -1)
-		}
-		if err != nil {
-			return
-		}
 	}
 	cd.Env.HelmChartPath, err = templateString(in.Env.HelmChartPath, tmplData)
 	if err != nil {
@@ -103,8 +91,8 @@ func GetCommandInput(in RawInput, cmpIdx int) (cd CommandInput, err error) {
 	if err != nil {
 		return
 	}
-	for i := range in.Env.DockerFiles {
-		cd.Env.DockerFiles[i], err = templateString(in.Env.DockerFiles[i], tmplData)
+	for i := range in.Env.DockerFileDirs {
+		cd.Env.DockerFileDirs[i], err = templateString(in.Env.DockerFileDirs[i], tmplData)
 		if err != nil {
 			return
 		}
@@ -121,4 +109,63 @@ func GetCommandInput(in RawInput, cmpIdx int) (cd CommandInput, err error) {
 	cd.Repo = in.Repo
 
 	return
+}
+
+type Args struct {
+	Components []string
+}
+
+type Flags struct {
+	Verbose bool
+	Env     string
+}
+
+type Env struct {
+	Cloud             string            `envconfig:"CLOUD" default:"gcloud"`
+	HelmChartPath     string            `envconfig:"HELM_CHART_PATH" required:"true"`
+	HelmBaseValueFile string            `envconfig:"HELM_BASE_VALUE_FILE" required:"true"`
+	HelmEnvValueFile  string            `envconfig:"HELM_ENV_VALUE_FILE" required:"true"`
+	KubeContextMap    map[string]string `envconfig:"KUBE_CONTEXT_MAP" required:"true"`
+
+	DockerRegistryBase string `envconfig:"DOCKER_REGISTRY_BASE" required:"true"`
+
+	Components     []string `envconfig:"COMPONENTS" required:"true"`
+	DockerContexts []string `envconfig:"DOCKER_CONTEXTS" required:"true"`
+	DockerFileDirs []string `envconfig:"DOCKER_FILE_DIRS" required:"true"`
+}
+
+type Repo struct {
+	Commit string
+}
+
+type RawInput struct {
+	Args  Args
+	Flags Flags
+	Env   Env
+	Repo  Repo
+}
+
+func (in *RawInput) Process() error {
+	in.Flags.Env = strings.ToLower(in.Flags.Env)
+
+	if in.Env.Cloud != "gcloud" {
+		return errors.New("only 'gcloud' is a supported cloud type")
+	}
+
+	hiN := len(in.Env.Components)
+	dfN := len(in.Env.DockerFileDirs)
+	dcN := len(in.Env.DockerContexts)
+	if !((hiN == dfN) && (dfN == dcN)) {
+		return errors.New("len(helm container images), len(helm images), len(docker files), len(docker contexts) must be equal")
+	}
+	return nil
+}
+
+type State struct {
+	DockerTags []DockerTag
+}
+
+type DockerTag struct {
+	Key string
+	Tag string
 }

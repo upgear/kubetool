@@ -5,21 +5,21 @@ import (
 	"strings"
 )
 
-func helmVals(in CommandInput) string {
+func helmVals(in CommandInput, s *State) string {
 	var imgs []string
-	for i, img := range in.HelmImages {
-		imgs = append(imgs, img+"="+in.Env.ContainerImages[i])
+	for _, tag := range s.DockerTags {
+		imgs = append(imgs, tag.Key+"_image="+tag.Tag)
 	}
 	return strings.Join(imgs, ",")
 }
 
-func Apply(in CommandInput) (err error) {
+func Apply(in CommandInput, s *State) (err error) {
 	args := []string{
 		"--kube-context", kubeContext(in),
 		"upgrade", in.ChartRelease(), in.HelmChartPath,
 		"--install",
 		"--values", in.HelmBaseValueFile,
-		"--set", helmVals(in),
+		"--set", helmVals(in, s),
 	}
 	if in.Verbose {
 		args = append(args, "--debug")

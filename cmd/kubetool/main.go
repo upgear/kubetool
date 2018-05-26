@@ -70,6 +70,7 @@ func main() {
 	}
 
 	// For each component.
+	var state kubetool.State
 	for cidx := range input.Args.Components {
 		// Run all commands.
 		for i, cmd := range kubetool.Commands {
@@ -82,7 +83,7 @@ func main() {
 				"command": kubetool.CommandNames[i],
 			})
 
-			fatal(cmd(cmdInput))
+			fatal(cmd(cmdInput, &state))
 		}
 	}
 }
@@ -116,13 +117,14 @@ Options:
     -v         Verbose output
 
 Environment Variables:
-    KT_DOCKER_FILES          Dockerfile
-    KT_HELM_IMAGES           Helm images (variable names)
+    KT_COMPONENTS            Top level components (go, web, etc.)
+    KT_DOCKER_FILE_DIRS      Directories that contain Dockerfiles
+    KT_DOCKER_CONTEXTS       Docker build context (directories)
+
     KT_HELM_CHART_PATH       Helm chart (directory)
     KT_HELM_BASE_VALUE_FILE  The first layer of helm values
     KT_HELM_ENV_VALUE_FILE   The second layer of helm values (env specific)
-    KT_CONTAINER_IMAGES      Template for container image (docker tag)
-    KT_DOCKER_CONTEXTS       Docker build context (directory)
+    KT_DOCKER_REGISTRY_BASE  Template for docker registry
     KT_CLOUD                 Cloud provider (only supports 'gcloud')
 
     All environment variables can be templated using the following variables:
