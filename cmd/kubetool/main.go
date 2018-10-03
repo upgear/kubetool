@@ -29,6 +29,7 @@ func main() {
 	}
 	flag.BoolVar(&input.Flags.Verbose, "v", false, "Log a bunch of stuff")
 	flag.StringVar(&input.Flags.Env, "env", "dev", "Environment")
+	flag.StringVar(&input.Flags.OnlyBuild, "onlybuild", "", "Exclude string (match by contains)")
 	var overrideRepoCheck bool
 	flag.BoolVar(&overrideRepoCheck, "norepocheck", false, "Override repo integrity check")
 	flag.Parse()
@@ -111,10 +112,13 @@ func usage(msg string) string {
 		`Usage: kubetool [Options...] <chart>/<release>...
 
 Options:
-    -e --env   Environment (defaults to "dev"). If it is anything other than
-               "dev" then the repo must be in a clean state.
-    -h --help  Print usage
-    -v         Verbose output
+    -e --env      Environment (defaults to "dev"). If it is anything other than
+                  "dev" then the repo must be in a clean state.
+    -h --help     Print usage
+    -v            Verbose output
+    --onlybuild   Only build dockerfiles which paths that contain this string
+	              NOTE: Only works with env = dev, and previous builds must
+				  be present on machine.
 
 Environment Variables:
     KT_COMPONENTS            Top level components (go, web, etc.)

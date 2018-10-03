@@ -22,12 +22,21 @@ func Build(in CommandInput, s *State) error {
 				fp := filepath.Join(in.Env.DockerFileDirs[i], f.Name())
 				dockerfileName := strings.TrimSuffix(f.Name(), filepath.Ext(f.Name()))
 
+				tagLatest := buildTagName(in.Flags.Env == DevEnv, c, in.Env.DockerRegistryBase, dockerfileName, "latest")
 				tag := buildTagName(in.Flags.Env == DevEnv, c, in.Env.DockerRegistryBase, dockerfileName, in.Repo.Commit)
 
-				params := []string{"build", "-t", tag, "-f", fp, in.Env.DockerContexts[i]}
+				var params []string
+				if in.OnlyBuild == "" || strings.Contains(f.Name(), in.OnlyBuild) {
+					params = []string{"build", "-t", tagLatest, "-t", tag, "-f", fp, in.Env.DockerContexts[i]}
+				} else {
+					if in.Flags.Verbose {
+						log.Info("excluding docker build, using latest tag", log.M{"dockerfile": f.Name()})
+					}
+					params = []string{"tag", tagLatest, tag}
+				}
 
 				if _, err := cmd(in.Flags.Verbose, "docker", params...); err != nil {
-					return errors.Wrap(err, "unable to build docker image")
+					return errors.Wrap(err, "unable to build/tag docker image")
 				}
 
 				s.DockerTags = append(s.DockerTags, DockerTag{
@@ -42,7 +51,7 @@ func Build(in CommandInput, s *State) error {
 }
 
 func buildTagName(dev bool, cmp, base, name, commit string) string {
-	if dev {
+	if dev && commit != "latest" {
 		commit = commit[:8]
 	}
 	s := fmt.Sprintf("%s/%s-%s:%s", base, cmp, name, commit)

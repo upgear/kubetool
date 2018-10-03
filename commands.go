@@ -116,8 +116,9 @@ type Args struct {
 }
 
 type Flags struct {
-	Verbose bool
-	Env     string
+	Verbose   bool
+	OnlyBuild string
+	Env       string
 }
 
 type Env struct {
@@ -150,6 +151,10 @@ func (in *RawInput) Process() error {
 
 	if in.Env.Cloud != "gcloud" {
 		return errors.New("only 'gcloud' is a supported cloud type")
+	}
+
+	if in.Flags.Env != DevEnv && in.Flags.OnlyBuild != "" {
+		return fmt.Errorf("onlybuild can only be used with %q env", DevEnv)
 	}
 
 	hiN := len(in.Env.Components)
